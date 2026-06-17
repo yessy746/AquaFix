@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Complaint Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="container">
+
+<h1>Complaint Dashboard</h1>
+
+<table border="1" width="100%">
+<tr>
+    <th>ID</th>
+    <th>Name</th>
+    <th>Email</th>
+    <th>Phone</th>
+    <th>Issue</th>
+    <th>Location</th>
+    <th>Assigned Team</th>
+    <th>Status</th>
+</tr>
+
+{% for complaint in complaints %}
+<tr>
+    <td>{{ complaint[0] }}</td>
+    <td>{{ complaint[1] }}</td>
+    <td>{{ complaint[2] }}</td>
+    <td>{{ complaint[3] }}</td>
+    <td>{{ complaint[4] }}</td>
+    <td>{{ complaint[6] }}</td>
+    <td>{{ complaint[7] }}</td>
+    <td>{{ complaint[8] }}</td>
+</tr>
+{% endfor %}
+
+</table>
+
+<br>
+
+<a href="/" class="btn">Back Home</a>
+
+</div>
+
+</body>
+</html>

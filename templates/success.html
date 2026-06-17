@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Complaint Submitted</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="container">
+
+    <h1>✅ Complaint Submitted Successfully</h1>
+
+    <h2>Complaint Details</h2>
+
+    <p>
+        <strong>Complaint ID:</strong>
+        {{ complaint_id }}
+    </p>
+
+    <p>
+        <strong>Assigned Team:</strong>
+        {{ assigned_team }}
+    </p>
+
+    <p>
+        <strong>Status:</strong>
+        Pending
+    </p>
+
+    <br>
+
+    <a href="/" class="btn">Back Home</a>
+
+    <a href="/dashboard" class="btn">View Dashboard</a>
+
+</div>
+
+</body>
+</html>
