@@ -1,121 +1,172 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect
 import sqlite3
-from datetime import datetime
+from math import radians, sin, cos, sqrt, atan2
 
 app = Flask(__name__)
 
-DATABASE = "aquafix.db"
+# -----------------------------
+# DATABASE CONNECTION
+# -----------------------------
+def get_db():
+    conn = sqlite3.connect("aquafix.db")
+    conn.row_factory = sqlite3.Row
+    return conn
 
 
-def init_db():
-    conn = sqlite3.connect(DATABASE)
-    cur = conn.cursor()
+# -----------------------------
+# DISTANCE FUNCTION
+# -----------------------------
+def distance(lat1, lon1, lat2, lon2):
+    R = 6371
 
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS complaints (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        email TEXT,
-        phone TEXT,
-        issue_type TEXT NOT NULL,
-        description TEXT NOT NULL,
-        location TEXT NOT NULL,
-        assigned_team TEXT,
-        status TEXT,
-        created_at TEXT
+    dlat = radians(lat2 - lat1)
+    dlon = radians(lon2 - lon1)
+
+    a = (
+        sin(dlat / 2) ** 2
+        + cos(radians(lat1))
+        * cos(radians(lat2))
+        * sin(dlon / 2) ** 2
     )
-    """)
 
-    conn.commit()
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+    return R * c
+
+
+# -----------------------------
+# FIND NEAREST TEAM
+# -----------------------------
+def find_nearest_team(lat, lng):
+    conn = get_db()
+
+    teams = conn.execute(
+        "SELECT * FROM teams"
+    ).fetchall()
+
     conn.close()
 
+    if not teams:
+        return "No Team Available"
 
-def assign_team(location):
-    teams = [
-        "North Water Maintenance Team",
-        "South Water Maintenance Team",
-        "East Water Maintenance Team",
-        "West Water Maintenance Team"
-    ]
+    min_dist = float("inf")
+    nearest_team = "Unassigned"
 
-    return teams[hash(location) % len(teams)]
+    for team in teams:
+
+        d = distance(
+            lat,
+            lng,
+            team["lat"],
+            team["lng"]
+        )
+
+        if d < min_dist:
+            min_dist = d
+            nearest_team = team["name"]
+
+    return nearest_team
 
 
+# -----------------------------
+# HOME PAGE
+# -----------------------------
 @app.route("/")
-def home():
+def index():
     return render_template("index.html")
 
 
+# -----------------------------
+# ABOUT PAGE
+# -----------------------------
+@app.route("/about")
+def about():
+    return render_template("about.html")
+
+
+# -----------------------------
+# REPORT COMPLAINT
+# -----------------------------
 @app.route("/report", methods=["GET", "POST"])
 def report():
 
     if request.method == "POST":
 
-        name = request.form["name"]
-        email = request.form["email"]
-        phone = request.form["phone"]
-        issue_type = request.form["issue_type"]
-        description = request.form["description"]
-        location = request.form["location"]
+        try:
 
-        assigned_team = assign_team(location)
+            name = request.form["name"]
+            email = request.form["email"]
+            phone = request.form["phone"]
+            issue = request.form["issue_type"]
+            description = request.form["description"]
 
-        conn = sqlite3.connect(DATABASE)
-        cur = conn.cursor()
+            lat = float(request.form.get("lat", 0))
+            lng = float(request.form.get("lng", 0))
 
-        cur.execute("""
-        INSERT INTO complaints
-        (
-            name,
-            email,
-            phone,
-            issue_type,
-            description,
-            location,
-            assigned_team,
-            status,
-            created_at
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            name,
-            email,
-            phone,
-            issue_type,
-            description,
-            location,
-            assigned_team,
-            "Pending",
-            datetime.now().strftime("%Y-%m-%d %H:%M")
-        ))
+            assigned_team = find_nearest_team(lat, lng)
 
-        complaint_id = cur.lastrowid
+            conn = get_db()
 
-        conn.commit()
-        conn.close()
+            cursor = conn.cursor()
 
-        return render_template(
-            "success.html",
-            complaint_id=complaint_id,
-            assigned_team=assigned_team
-        )
+            cursor.execute(
+                """
+                INSERT INTO complaints
+                (
+                    name,
+                    email,
+                    phone,
+                    issue,
+                    description,
+                    lat,
+                    lng,
+                    assigned_team,
+                    status
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    name,
+                    email,
+                    phone,
+                    issue,
+                    description,
+                    lat,
+                    lng,
+                    assigned_team,
+                    "Pending"
+                )
+            )
+
+            complaint_id = cursor.lastrowid
+
+            conn.commit()
+            conn.close()
+
+            return render_template(
+                "success.html",
+                complaint_id=complaint_id,
+                assigned_team=assigned_team
+            )
+
+        except Exception as e:
+            print("ERROR:", e)
+            return f"Error: {e}"
 
     return render_template("report.html")
 
 
+# -----------------------------
+# DASHBOARD
+# -----------------------------
 @app.route("/dashboard")
 def dashboard():
 
-    conn = sqlite3.connect(DATABASE)
-    cur = conn.cursor()
+    conn = get_db()
 
-    cur.execute("""
-    SELECT * FROM complaints
-    ORDER BY id DESC
-    """)
-
-    complaints = cur.fetchall()
+    complaints = conn.execute(
+        "SELECT * FROM complaints"
+    ).fetchall()
 
     conn.close()
 
@@ -125,18 +176,17 @@ def dashboard():
     )
 
 
+# -----------------------------
+# ADMIN PANEL
+# -----------------------------
 @app.route("/admin")
 def admin():
 
-    conn = sqlite3.connect(DATABASE)
-    cur = conn.cursor()
+    conn = get_db()
 
-    cur.execute("""
-    SELECT * FROM complaints
-    ORDER BY id DESC
-    """)
-
-    complaints = cur.fetchall()
+    complaints = conn.execute(
+        "SELECT * FROM complaints"
+    ).fetchall()
 
     conn.close()
 
@@ -146,13 +196,37 @@ def admin():
     )
 
 
+# -----------------------------
+# MAP VIEW
+# -----------------------------
+@app.route("/map")
+def map_view():
+
+    conn = get_db()
+
+    rows = conn.execute(
+        "SELECT * FROM complaints"
+    ).fetchall()
+
+    conn.close()
+
+    complaints = [dict(row) for row in rows]
+
+    return render_template(
+        "map.html",
+        complaints=complaints
+    )
+
+
+# -----------------------------
+# UPDATE STATUS
+# -----------------------------
 @app.route("/update/<int:id>/<status>")
 def update_status(id, status):
 
-    conn = sqlite3.connect(DATABASE)
-    cur = conn.cursor()
+    conn = get_db()
 
-    cur.execute(
+    conn.execute(
         "UPDATE complaints SET status=? WHERE id=?",
         (status, id)
     )
@@ -160,9 +234,52 @@ def update_status(id, status):
     conn.commit()
     conn.close()
 
-    return redirect(url_for("admin"))
+    return redirect("/admin")
 
 
+# -----------------------------
+# FEEDBACK SYSTEM
+# -----------------------------
+@app.route("/feedback/<int:id>", methods=["GET", "POST"])
+def feedback(id):
+
+    if request.method == "POST":
+
+        rating = request.form["rating"]
+        comment = request.form["comment"]
+
+        conn = get_db()
+
+        conn.execute(
+            """
+            INSERT INTO feedback
+            (
+                complaint_id,
+                rating,
+                comment
+            )
+            VALUES (?, ?, ?)
+            """,
+            (
+                id,
+                rating,
+                comment
+            )
+        )
+
+        conn.commit()
+        conn.close()
+
+        return redirect("/dashboard")
+
+    return render_template(
+        "feedback.html",
+        complaint_id=id
+    )
+
+
+# -----------------------------
+# RUN APP
+# -----------------------------
 if __name__ == "__main__":
-    init_db()
     app.run(debug=True)

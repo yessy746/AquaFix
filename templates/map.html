@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AquaFix Map View</title>
+<div class="header">
+    <h1>🗺 AquaFix Complaint Map</h1>
+    <p>Monitor complaints across locations</p>
+</div>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+    <style>
+        body {
+            font-family: Arial;
+            margin: 0;
+            background: #f4f8fb;
+        }
+
+        #map{
+    		height:80vh;
+    		border-radius:15px;
+    		overflow:hidden;
+		}
+
+        .header {
+            padding: 15px;
+            background: #0077cc;
+            color: white;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="header">
+    <h2>💧 AquaFix Complaint Map View</h2>
+</div>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    // Initialize map (default: Andhra Pradesh region)
+    var map = L.map('map').setView([17.3850, 78.4867], 10);
+
+    // OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: 'AquaFix Map'
+    }).addTo(map);
+
+    // Complaint markers from backend
+    var complaints = {{ complaints | tojson }};
+
+    complaints.forEach(function(c) {
+
+        if (c.lat && c.lng) {
+
+            var marker = L.marker([c.lat, c.lng]).addTo(map);
+
+            marker.bindPopup(
+                "<b>Issue:</b> " + c.issue +
+                "<br><b>Status:</b> " + c.status +
+                "<br><b>Team:</b> " + c.assigned_team
+            );
+        }
+    });
+</script>
+
+</body>
+</html>

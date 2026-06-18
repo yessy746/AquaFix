@@ -43,7 +43,24 @@
     name="email"
     placeholder="Email Address"
     required>
+<input type="hidden" name="lat" id="lat">
+<input type="hidden" name="lng" id="lng">
 
+<button type="button" onclick="getLocation()">📍 Get My Location</button>
+
+<script>
+function getLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            document.getElementById("lat").value = position.coords.latitude;
+            document.getElementById("lng").value = position.coords.longitude;
+            alert("Location captured successfully!");
+        });
+    } else {
+        alert("Geolocation not supported");
+    }
+}
+</script>
 <input
     type="text"
     name="phone"

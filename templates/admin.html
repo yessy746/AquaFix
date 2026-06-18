@@ -6,11 +6,12 @@
 </head>
 <body>
 
-<div class="container">
+<div class="card">
 
-<h1>Admin Panel</h1>
+<h1>🛠️ Admin Panel</h1>
 
 <table border="1" width="100%">
+
 <tr>
     <th>ID</th>
     <th>Name</th>
@@ -19,29 +20,38 @@
     <th>Assigned Team</th>
     <th>Status</th>
     <th>Actions</th>
+    <th>Feedback</th>
 </tr>
 
 {% for complaint in complaints %}
 <tr>
 
-<td>{{ complaint[0] }}</td>
-<td>{{ complaint[1] }}</td>
-<td>{{ complaint[4] }}</td>
-<td>{{ complaint[6] }}</td>
-<td>{{ complaint[7] }}</td>
-<td>{{ complaint[8] }}</td>
+<td>{{ complaint['id'] }}</td>
+<td>{{ complaint['name'] }}</td>
+<td>{{ complaint['issue'] }}</td>
+<td>{{ complaint['lat'] }}, {{ complaint['lng'] }}</td>
+<td>{{ complaint['assigned_team'] }}</td>
 
 <td>
-<a href="/update/{{ complaint[0] }}/In Progress">
-Start
-</a>
+    {% if complaint['status'] == "Pending" %}
+        🔴 Pending
+    {% elif complaint['status'] == "In Progress" %}
+        🟡 In Progress
+    {% else %}
+        🟢 Resolved
+    {% endif %}
+</td>
 
-|
+<td>
+    <a href="/update/{{ complaint['id'] }}/In Progress">Start</a> |
+    <a href="/update/{{ complaint['id'] }}/Resolved">Resolve</a>
+</td>
 
-<a href="/update/{{ complaint[0] }}/Resolved">
-Resolve
-</a>
-
+<!-- ⭐ FEEDBACK LINK -->
+<td>
+    <a href="/feedback/{{ complaint['id'] }}" class="btn">
+        View / Add Feedback
+    </a>
 </td>
 
 </tr>

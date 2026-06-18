@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Feedback</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="card">
+
+    <h1>⭐ Give Feedback</h1>
+
+    <p>Complaint ID: {{ complaint_id }}</p>
+
+    <form method="POST">
+
+        <label>Rating (1-5)</label>
+        <input type="number" name="rating" min="1" max="5" required>
+
+        <label>Comment</label>
+        <textarea name="comment" placeholder="Write your feedback..."></textarea>
+
+        <button type="submit">Submit Feedback</button>
+
+    </form>
+
+</div>
+
+</body>
+</html>
