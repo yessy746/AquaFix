@@ -1,46 +1,38 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>AquaFix Login</title>
-    <!DOCTYPE html>
-<html>
-<head>
-    <title>AquaFix Login</title>
+    <title>Register - AquaFix</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
 <div class="container">
 
-    <h1>💧 AquaFix</h1>
-
-    <h2>Login</h2>
+    <h1>Create Account</h1>
 
     <form method="POST">
 
         <input
             type="text"
             name="username"
-            placeholder="Username"
+            placeholder="Choose Username"
             required>
 
         <input
             type="password"
             name="password"
-            placeholder="Password"
+            placeholder="Choose Password"
             required>
 
         <button type="submit">
-            Login
+            Register
         </button>
 
     </form>
 
     <br>
 
-    <a href="/register">
-        Create New Account
-    </a>
+    <a href="/">Already have an account? Login</a>
 
 </div>
 

@@ -72,6 +72,12 @@ def find_nearest_team(lat, lng):
 # LOGIN PAGE
 # -----------------------------
 
+# -----------------------------
+# LOGIN PAGE
+# -----------------------------
+# -----------------------------
+# LOGIN PAGE
+# -----------------------------
 @app.route("/", methods=["GET", "POST"])
 def login():
 
@@ -80,15 +86,60 @@ def login():
         username = request.form["username"]
         password = request.form["password"]
 
-        if username == "admin" and password == "1234":
+        conn = get_db()
+
+        user = conn.execute(
+            "SELECT * FROM users WHERE username=? AND password=?",
+            (username, password)
+        ).fetchone()
+
+        conn.close()
+
+        if user:
 
             session["logged_in"] = True
+            session["username"] = username
 
             return redirect("/home")
 
-        return "Invalid Login"
+        return "Invalid Username or Password"
 
     return render_template("login.html")
+
+# -----------------------------
+# REGISTER PAGE
+# -----------------------------
+@app.route("/register", methods=["GET", "POST"])
+def register():
+
+    if request.method == "POST":
+
+        username = request.form["username"]
+        password = request.form["password"]
+
+        try:
+
+            conn = get_db()
+
+            conn.execute(
+                """
+                INSERT INTO users
+                (username, password)
+                VALUES (?, ?)
+                """,
+                (username, password)
+            )
+
+            conn.commit()
+            conn.close()
+
+            return redirect("/")
+
+        except Exception as e:
+
+            return f"Registration Error: {e}"
+
+    return render_template("register.html")
 
 # -----------------------------
 # LOGOUT PAGE
@@ -110,7 +161,10 @@ def index():
     if not session.get("logged_in"):
         return redirect("/")
 
-    return render_template("index.html")
+    return render_template(
+        "index.html",
+        username=session.get("username")
+    )
 
 # -----------------------------
 # ABOUT PAGE
