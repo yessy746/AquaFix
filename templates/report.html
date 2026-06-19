@@ -6,78 +6,143 @@
 </head>
 <body>
 
+<div class="header">
+    <h1>💧 AquaFix</h1>
+    <p>Report Water-Related Issues</p>
+</div>
+
 <div class="container">
 
-    <h1>Report Water Complaint</h1>
+    <div class="card">
 
-    <form method="POST">
+        <h1>📝 Report Water Complaint</h1>
 
-        <input
-            type="text"
-            name="name"
-            placeholder="Your Name"
-            required>
+        <form method="POST">
 
-        <select name="issue_type" required>
-            <option value="">Select Issue</option>
-            <option>No Water Supply</option>
-            <option>Dirty Water</option>
-            <option>Pipe Leakage</option>
-            <option>Low Pressure</option>
-            <option>Water Wastage</option>
-        </select>
+            <input
+                type="text"
+                name="name"
+                placeholder="Your Name"
+                required>
 
-        <textarea
-            name="description"
-            placeholder="Describe the issue"
-            required></textarea>
+            <input
+                type="email"
+                name="email"
+                placeholder="Email Address"
+                required>
 
-        <input
-            type="text"
-            name="location"
-            placeholder="Area / Location"
-            required>
+            <input
+                type="text"
+                name="phone"
+                placeholder="Phone Number"
+                required>
 
-<input
-    type="email"
-    name="email"
-    placeholder="Email Address"
-    required>
-<input type="hidden" name="lat" id="lat">
-<input type="hidden" name="lng" id="lng">
+            <select name="issue_type" required>
+                <option value="">Select Issue</option>
+                <option>No Water Supply</option>
+                <option>Dirty Water</option>
+                <option>Pipe Leakage</option>
+                <option>Low Pressure</option>
+                <option>Water Wastage</option>
+            </select>
 
-<button type="button" onclick="getLocation()">📍 Get My Location</button>
+            <textarea
+                name="description"
+                placeholder="Describe the issue"
+                required></textarea>
 
-<script>
-function getLocation() {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(position) {
-            document.getElementById("lat").value = position.coords.latitude;
-            document.getElementById("lng").value = position.coords.longitude;
-            alert("Location captured successfully!");
-        });
-    } else {
-        alert("Geolocation not supported");
-    }
-}
-</script>
-<input
-    type="text"
-    name="phone"
-    placeholder="Phone Number"
-    required>
+            <input
+                type="text"
+                name="location"
+                placeholder="Area / Location"
+                required>
 
-        <button type="submit">
-            Submit Complaint
-        </button>
+            <!-- Hidden GPS Fields -->
+            <input type="hidden" id="lat" name="lat">
+            <input type="hidden" id="lng" name="lng">
 
-    </form>
+            <button type="button" onclick="getLocation()">
+                📍 Get My Location
+            </button>
 
-    <br>
+            <br><br>
 
-    <a href="/">Back Home</a>
+            <button type="submit">
+                Submit Complaint
+            </button>
+
+        </form>
+
+        <br>
+
+        <a href="/" class="btn">🏠 Back Home</a>
+
+    </div>
 
 </div>
+
+<script>
+
+// Automatically try to get location when page loads
+window.onload = function() {
+
+    if (navigator.geolocation) {
+
+        navigator.geolocation.getCurrentPosition(function(position) {
+
+            document.getElementById("lat").value =
+                position.coords.latitude;
+
+            document.getElementById("lng").value =
+                position.coords.longitude;
+
+        });
+
+    }
+
+};
+
+// Manual button
+function getLocation() {
+
+    if (navigator.geolocation) {
+
+        navigator.geolocation.getCurrentPosition(function(position) {
+
+            document.getElementById("lat").value =
+                position.coords.latitude;
+
+            document.getElementById("lng").value =
+                position.coords.longitude;
+
+            alert("✅ Location captured successfully!");
+
+        });
+
+    } else {
+
+        alert("❌ Geolocation is not supported by this browser.");
+
+    }
+
+}
+
+// Prevent submission if location is missing
+document.querySelector("form").addEventListener("submit", function(e){
+
+    let lat = document.getElementById("lat").value;
+    let lng = document.getElementById("lng").value;
+
+    if(lat === "" || lng === ""){
+
+        alert("📍 Please click 'Get My Location' before submitting.");
+
+        e.preventDefault();
+    }
+
+});
+
+</script>
 
 </body>
 </html>

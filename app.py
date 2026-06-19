@@ -100,8 +100,11 @@ def report():
             issue = request.form["issue_type"]
             description = request.form["description"]
 
-            lat = float(request.form.get("lat", 0))
-            lng = float(request.form.get("lng", 0))
+            lat_str = request.form.get("lat", "").strip()
+            lng_str = request.form.get("lng", "").strip()
+
+            lat = float(lat_str) if lat_str else 0.0
+            lng = float(lng_str) if lng_str else 0.0
 
             assigned_team = find_nearest_team(lat, lng)
 
