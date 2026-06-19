@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, session
 import sqlite3
 from math import radians, sin, cos, sqrt, atan2
 
 app = Flask(__name__)
+app.secret_key = "aquafix123"
 
 # -----------------------------
 # DATABASE CONNECTION
@@ -67,22 +68,60 @@ def find_nearest_team(lat, lng):
 
     return nearest_team
 
+# -----------------------------
+# LOGIN PAGE
+# -----------------------------
+
+@app.route("/", methods=["GET", "POST"])
+def login():
+
+    if request.method == "POST":
+
+        username = request.form["username"]
+        password = request.form["password"]
+
+        if username == "admin" and password == "1234":
+
+            session["logged_in"] = True
+
+            return redirect("/home")
+
+        return "Invalid Login"
+
+    return render_template("login.html")
+
+# -----------------------------
+# LOGOUT PAGE
+# -----------------------------
+
+@app.route("/logout")
+def logout():
+
+    session.clear()
+
+    return redirect("/")
 
 # -----------------------------
 # HOME PAGE
 # -----------------------------
-@app.route("/")
+@app.route("/home")
 def index():
-    return render_template("index.html")
 
+    if not session.get("logged_in"):
+        return redirect("/")
+
+    return render_template("index.html")
 
 # -----------------------------
 # ABOUT PAGE
 # -----------------------------
 @app.route("/about")
 def about():
-    return render_template("about.html")
 
+    if not session.get("logged_in"):
+        return redirect("/")
+
+    return render_template("about.html")
 
 # -----------------------------
 # REPORT COMPLAINT
@@ -90,8 +129,10 @@ def about():
 @app.route("/report", methods=["GET", "POST"])
 def report():
 
-    if request.method == "POST":
+    if not session.get("logged_in"):
+        return redirect("/")
 
+    if request.method == "POST":
         try:
 
             name = request.form["name"]
@@ -168,6 +209,9 @@ def report():
 @app.route("/dashboard")
 def dashboard():
 
+    if not session.get("logged_in"):
+        return redirect("/")
+
     conn = get_db()
 
     complaints = conn.execute(
@@ -188,6 +232,9 @@ def dashboard():
 @app.route("/admin")
 def admin():
 
+    if not session.get("logged_in"):
+        return redirect("/")
+
     conn = get_db()
 
     complaints = conn.execute(
@@ -207,6 +254,9 @@ def admin():
 # -----------------------------
 @app.route("/map")
 def map_view():
+
+    if not session.get("logged_in"):
+        return redirect("/")
 
     conn = get_db()
 
@@ -248,6 +298,9 @@ def update_status(id, status):
 # -----------------------------
 @app.route("/feedback/<int:id>", methods=["GET", "POST"])
 def feedback(id):
+
+    if not session.get("logged_in"):
+        return redirect("/")
 
     if request.method == "POST":
 
