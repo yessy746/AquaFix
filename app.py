@@ -99,17 +99,22 @@ def report():
             phone = request.form["phone"]
             issue = request.form["issue_type"]
             description = request.form["description"]
+            location = request.form["location"]
 
+            # GPS (optional)
             lat_str = request.form.get("lat", "").strip()
             lng_str = request.form.get("lng", "").strip()
 
             lat = float(lat_str) if lat_str else 0.0
             lng = float(lng_str) if lng_str else 0.0
 
-            assigned_team = find_nearest_team(lat, lng)
+            # Auto-assign nearest team if GPS available
+            if lat != 0.0 and lng != 0.0:
+                assigned_team = find_nearest_team(lat, lng)
+            else:
+                assigned_team = "Team A"
 
             conn = get_db()
-
             cursor = conn.cursor()
 
             cursor.execute(
@@ -119,14 +124,13 @@ def report():
                     name,
                     email,
                     phone,
-                    issue,
+                    issue_type,
                     description,
-                    lat,
-                    lng,
+                    location,
                     assigned_team,
                     status
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     name,
@@ -134,8 +138,7 @@ def report():
                     phone,
                     issue,
                     description,
-                    lat,
-                    lng,
+                    location,
                     assigned_team,
                     "Pending"
                 )
